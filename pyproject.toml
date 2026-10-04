@@ -1,0 +1,9 @@
+[project]
+name = "hyderabad-urban-planning"
+version = "0.1.0"
+description = "Multi-modal geospatial urban planning decision support platform for Hyderabad"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
