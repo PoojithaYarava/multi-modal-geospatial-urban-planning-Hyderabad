@@ -130,11 +130,25 @@ npm install
 npm run dev -- --host 0.0.0.0
 ```
 
-## 16. GIS Analysis
+## 16. Deploying the Website on Render
+
+The frontend and API are deployed as separate Render services. The app currently serves sample ward data; deployment does not add official citywide datasets.
+
+1. Push the project to GitHub and sign in to [Render](https://render.com/).
+2. In Render, create a **New Web Service** from this GitHub repository. Select Docker as the runtime, use the repository root as the Docker context, and select `Dockerfile`.
+3. Add the API environment variables `APP_ENV=production` and `FRONTEND_ORIGIN=http://localhost:5173` temporarily. Deploy and copy the resulting API URL, for example `https://hyderabad-api.onrender.com`.
+4. Create a **New Static Site** from the same repository. Set the root directory to `.`, the build command to `cd frontend && npm ci && npm run build`, and the publish directory to `frontend/dist`.
+5. Add the frontend environment variable `VITE_API_URL` with the API URL from step 3, without a trailing slash, and deploy the static site.
+6. Copy the static site's public URL and update `FRONTEND_ORIGIN` on the API service to that exact URL, including `https://`. Save the change and redeploy the API.
+7. Verify the API at `<API_URL>/health`, its documentation at `<API_URL>/docs`, and open the static site's URL. The map uses OpenStreetMap tiles, so the deployed browser needs internet access.
+
+The free Render services may sleep when idle and take time to respond on the first request. Do not commit production secrets to GitHub. A hosted PostGIS database is not required for the current sample-data demo; configure `DATABASE_URL` only when database-backed data access is implemented.
+
+## 17. GIS Analysis
 
 The application computes ward-level metrics including population, route and road density, hospital access, and metro accessibility. These metrics are normalized before site-suitability scoring.
 
-## 17. Hospital Suitability Methodology
+## 18. Hospital Suitability Methodology
 
 The final suitability score is computed as a weighted sum of normalized criteria. The recommended default weights are:
 
@@ -146,40 +160,40 @@ The final suitability score is computed as a weighted sum of normalized criteria
 
 The output is labeled as an analytical site suitability recommendation rather than a legal planning approval.
 
-## 18. API Documentation
+## 19. API Documentation
 
 FastAPI automatically exposes Swagger documentation at:
 
 - `/docs`
 - `/redoc`
 
-## 19. Screenshots
+## 20. Screenshots
 
 Screenshots can be added to the `docs/` folder or repository wiki as the project evolves.
 
-## 20. Testing
+## 21. Testing
 
 ```bash
 python -m pytest -q
 ```
 
-## 21. Limitations
+## 22. Limitations
 
 - The project does not claim to determine legal hospital approval or land ownership.
 - Census and ward alignment may require a manual review in real-world deployments.
 - Satellite-derived environmental indicators remain optional when Copernicus credentials are unavailable.
 
-## 22. Future Work
+## 23. Future Work
 
 - Add real PostGIS ingestion pipelines for TGRAC and OSM data.
 - Add parcel-level suitability if land-use products become available.
 - Add Copernicus NDVI workflows with credentialed access.
 - Improve the ML module for urban-growth prediction.
 
-## 23. Data Attribution
+## 24. Data Attribution
 
 This project uses official and open data sources where available, including TGRAC, OpenStreetMap, HMRL GTFS, and Census India materials. Users must confirm data licensing and usage conditions for their application.
 
-## 24. License
+## 25. License
 
 This project is distributed under the MIT license unless otherwise specified in the repository.

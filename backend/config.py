@@ -9,6 +9,7 @@ from pydantic import BaseModel
 class Settings(BaseModel):
     app_name: str = "HYDERABAD GEOSPATIAL ANALYTICS"
     environment: str = os.getenv("APP_ENV", "development")
+    frontend_origin: str = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./data/hyderabad_app.db")
     tgrac_api_url: str = os.getenv(
         "TGRAC_API_URL",

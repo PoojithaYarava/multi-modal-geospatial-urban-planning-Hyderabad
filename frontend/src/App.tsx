@@ -76,6 +76,8 @@ type TabKey = 'overview' | 'map' | 'accessibility' | 'growth' | 'environment' | 
 
 type WeightKey = 'population' | 'health' | 'roads' | 'transit' | 'environment';
 
+const API_BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
+
 const defaultSummary: Summary = {
   total_wards: 3,
   population: 124000,
@@ -123,7 +125,7 @@ function App() {
   useEffect(() => {
     const fetchAnalysis = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/analysis/summary');
+        const response = await fetch(`${API_BASE_URL}/api/v1/analysis/summary`);
         if (response.ok) {
           const data = await response.json();
           setSummary(data);
@@ -133,7 +135,7 @@ function App() {
       }
 
       try {
-        const response = await fetch('http://localhost:8000/api/v1/wards');
+        const response = await fetch(`${API_BASE_URL}/api/v1/wards`);
         if (response.ok) {
           const data = await response.json();
           if (Array.isArray(data.items) && data.items.length > 0) {
