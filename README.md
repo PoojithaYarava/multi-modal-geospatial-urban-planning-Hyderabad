@@ -1,199 +1,198 @@
-# Multi-Modal Geospatial Urban Planning — Hyderabad
+# Hyderabad Geospatial Analytics
 
-This project is a portfolio-ready geospatial decision-support platform for Hyderabad, Telangana, India. It combines ward-level planning data, accessibility metrics, and a multi-criteria site-suitability model to help urban planners evaluate locations for a new public hospital.
+An interactive urban-planning dashboard prototype for exploring ward-level indicators and comparing potential public-service investment areas in Hyderabad, Telangana.
 
-## 1. Overview
+[![Open Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-Open-138a72?style=for-the-badge)](https://multi-modal-geospatial-urban-planning-b8sh.onrender.com)
 
-The platform follows a practical hybrid data strategy that prefers official and open-source geospatial datasets while clearly documenting where data is missing or uncertain. The initial production-ready implementation focuses on the analytical site-suitability workflow and includes a FastAPI backend, React dashboard, and reproducible data-processing scripts.
+> **Deployment status:** The dashboard is publicly available. The frontend currently falls back to demonstration values because its request to the API is blocked by CORS. See [Connect the deployed API](#connect-the-deployed-api) to finish that configuration. Current ward records and several indicators are sample/demo values, not authoritative citywide data.
 
-## 2. Problem Statement
+## Dashboard
 
-Urban planning requires a transparent way to compare spatial demand, service coverage, accessibility, and environmental constraints. This project models those factors for Hyderabad so planners can inspect candidate areas and understand why a given ward or planning area ranks highly.
+![Hyderabad Geospatial Analytics dashboard overview](docs/screenshots/dashboard-overview.png)
 
-## 3. Objectives
+The screenshot is captured from the live deployment. Map tiles require an internet connection and may take a moment to load.
 
-- Build a geospatial urban analytics workflow for Hyderabad.
-- Combine ward, road, hospital, transport, and environmental indicators.
-- Rank planning units using a weighted multi-criteria decision analysis model.
-- Expose data through a FastAPI service and interactive web dashboard.
-- Keep the platform reproducible and easy to extend with newer data sources.
+### Analysis views
 
-## 4. Key Features
+| Accessibility | Site suitability |
+| --- | --- |
+| ![Accessibility analysis view](docs/screenshots/accessibility.png) | ![Site suitability analysis view](docs/screenshots/site-analysis.png) |
 
-- Ward-level planning suitability scoring
-- Hospital and metro accessibility metrics
-- Weighted site-suitability engine
-- FastAPI endpoints with Pydantic validation
-- React dashboard with KPI cards and map layer toggles
-- Docker and PostgreSQL/PostGIS configuration
-- Sample and reproducible analysis scripts
+## What It Includes
 
-## 5. Architecture
+- **Overview and map:** Leaflet map, ward search, layer toggles, summary indicators, and a composite-score chart.
+- **Analysis views:** Accessibility, urban growth, environmental indicators, and site suitability.
+- **Suitability scoring:** A weighted multi-criteria service ranks the available planning records and returns score components.
+- **API:** FastAPI endpoints for health, ward records, summary indicators, and suitability analysis.
+- **Reproducible development:** Vite/React frontend, Python backend, tests, and Docker configuration.
+
+## Live Demo and API
+
+| Service | Address |
+| --- | --- |
+| Dashboard | [multi-modal-geospatial-urban-planning-b8sh.onrender.com](https://multi-modal-geospatial-urban-planning-b8sh.onrender.com) |
+| API health | Add the API service URL followed by `/health` |
+| Interactive API docs | Add the API service URL followed by `/docs` |
+
+The API host is a separate Render service. It is not the dashboard host; use the API service's URL from the Render dashboard.
+
+## Architecture
 
 ```mermaid
-flowchart TD
-    A[TGRAC Ward API] --> D[Data Ingestion]
-    B[OSM Overpass] --> D
-    C[HMRL GTFS] --> D
-    E[Census Population Data] --> D
-    D --> G[PostgreSQL + PostGIS]
-    G --> H[Accessibility Analysis]
-    G --> I[Site Suitability Engine]
-    H --> J[FastAPI]
-    I --> J
-    J --> K[React GIS Dashboard]
+flowchart LR
+    UI[React + Vite dashboard] -->|VITE_API_URL| API[FastAPI service]
+    API --> Wards[Current sample ward records]
+    API --> Scoring[Weighted suitability service]
+    Scoring --> API
+    API --> UI
+    Tiles[OpenStreetMap tile service] --> UI
 ```
 
-## 6. Data Sources
+The repository includes PostGIS and data-source scaffolding, but the deployed API currently serves in-code sample records. The external data ingestion and database-backed analysis are not yet connected to the dashboard.
 
-- TGRAC ArcGIS ward boundaries
-- OpenStreetMap Overpass for roads, hospitals, schools, parks, water, and transport features
-- HMRL GTFS for metro stations and routes
-- Census population inputs for demand estimation
-- Copernicus integration is prepared but intentionally optional and inactive without credentials
+## Tech Stack
 
-## 7. Data Acquisition
+- **Frontend:** React, TypeScript, Vite, Leaflet / React Leaflet, Recharts
+- **Backend:** Python, FastAPI, Pydantic
+- **Spatial/data tooling:** GeoPandas, Shapely, PyProj, Pandas, NumPy, scikit-learn
+- **Persistence and local services:** PostgreSQL/PostGIS, Docker Compose
+- **Hosting:** Render static site and web service
 
-Raw datasets are expected under the project data folders:
+## Run Locally
 
-- `data/raw/transport/` for GTFS ZIP files
-- `data/raw/population/` for census files
-- `data/processed/` for cleaned outputs
+Requirements: Python 3.11 or newer, Node.js 20 or newer, and npm.
 
-The project does not fabricate missing values. If a source is missing, the relevant analysis uses an explicit fallback message or a cautionary score.
+From PowerShell at the repository root:
 
-## 8. Technology Stack
-
-- Python 3.11+
-- FastAPI
-- SQLAlchemy
-- GeoPandas, Shapely, PyProj
-- Pandas, NumPy, scikit-learn
-- React, Vite, TypeScript, Leaflet, Recharts
-- PostgreSQL + PostGIS
-- Docker Compose
-
-## 9. Project Structure
-
-- `backend/` — API and analytics services
-- `frontend/` — dashboard and map UI
-- `scripts/` — ingestion and analysis runners
-- `data/` — raw and processed datasets
-- `tests/` — automated validation tests
-- `docs/` — methodology and limitations notes
-
-## 10. Installation
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+Copy-Item .env.example .env
 ```
 
-## 11. Configuration
+Start the API in one terminal:
 
-Copy the example environment file and adjust values as needed:
-
-```bash
-cp .env.example .env
+```powershell
+uvicorn backend.main:app --reload --port 8000
 ```
 
-## 12. Database Setup
+Start the frontend in a second terminal:
 
-The repository includes a PostgreSQL + PostGIS configuration in `docker-compose.yml`:
-
-```bash
-docker compose up -d postgres
+```powershell
+Set-Location frontend
+npm ci
+npm run dev
 ```
 
-## 13. Data Ingestion
+Open `http://localhost:5173`. The frontend defaults to the local API at `http://localhost:8000`. API docs are at `http://localhost:8000/docs`.
 
-The system includes scripts for ingestion and analytical processing:
+### Docker Compose
 
-```bash
-python scripts/run_analysis.py
+With Docker Desktop running, use the repository's development stack:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build
 ```
 
-Additional ingestion entry points are defined in the project structure and can be expanded for TGRAC, OSM, GTFS, and census workflows.
+The dashboard is at `http://localhost:5173` and the API is at `http://localhost:8000`. Compose starts PostGIS, but the current sample-data endpoints do not persist their ward records to it.
 
-## 14. Running Backend
+## Render Deployment
 
-```bash
-uvicorn backend.main:app --reload
-```
+The public dashboard is deployed as a Render **Static Site** and the API should be deployed separately as a Render **Web Service** using the repository `Dockerfile`.
 
-## 15. Running Frontend
+### Static site settings
 
-```bash
-cd frontend
-npm install
-npm run dev -- --host 0.0.0.0
-```
+| Setting | Value |
+| --- | --- |
+| Branch | `main` |
+| Root directory | Leave blank |
+| Build command | `cd frontend && npm ci && npm run build` |
+| Publish directory | `frontend/dist` |
+| Environment variable | `VITE_API_URL` = API service base URL, with no trailing slash |
 
-## 16. Deploying the Website on Render
+### API service settings
 
-The frontend and API are deployed as separate Render services. The app currently serves sample ward data; deployment does not add official citywide datasets.
+Use the repository root and `Dockerfile`. Configure:
 
-1. Push the project to GitHub and sign in to [Render](https://render.com/).
-2. In Render, create a **New Web Service** from this GitHub repository. Select Docker as the runtime, use the repository root as the Docker context, and select `Dockerfile`.
-3. Add the API environment variables `APP_ENV=production` and `FRONTEND_ORIGIN=http://localhost:5173` temporarily. Deploy and copy the resulting API URL, for example `https://hyderabad-api.onrender.com`.
-4. Create a **New Static Site** from the same repository. Set the root directory to `.`, the build command to `cd frontend && npm ci && npm run build`, and the publish directory to `frontend/dist`.
-5. Add the frontend environment variable `VITE_API_URL` with the API URL from step 3, without a trailing slash, and deploy the static site.
-6. Copy the static site's public URL and update `FRONTEND_ORIGIN` on the API service to that exact URL, including `https://`. Save the change and redeploy the API.
-7. Verify the API at `<API_URL>/health`, its documentation at `<API_URL>/docs`, and open the static site's URL. The map uses OpenStreetMap tiles, so the deployed browser needs internet access.
+| Variable | Value |
+| --- | --- |
+| `APP_ENV` | `production` |
+| `FRONTEND_ORIGIN` | Exact public dashboard origin, including `https://` |
 
-The free Render services may sleep when idle and take time to respond on the first request. Do not commit production secrets to GitHub. A hosted PostGIS database is not required for the current sample-data demo; configure `DATABASE_URL` only when database-backed data access is implemented.
+After setting variables, redeploy the relevant service. Keep secrets out of GitHub and configure them through Render's environment settings.
 
-## 17. GIS Analysis
+### Connect the deployed API
 
-The application computes ward-level metrics including population, route and road density, hospital access, and metro accessibility. These metrics are normalized before site-suitability scoring.
+Browser verification of the live dashboard found its request to `https://multi-modal-geospatial-urban-planning.onrender.com/api/v1/analysis/summary` is blocked because the API response does not include an `Access-Control-Allow-Origin` header. In Render:
 
-## 18. Hospital Suitability Methodology
+1. Open the API Web Service and confirm `VITE_API_URL` on the Static Site points to this API service's correct base URL.
+2. Set the API Web Service's `FRONTEND_ORIGIN` to `https://multi-modal-geospatial-urban-planning-b8sh.onrender.com` exactly, with no path or trailing slash.
+3. Save and redeploy the API service.
+4. Reload the dashboard and confirm its API requests no longer show CORS errors in the browser console. Verify `<API_URL>/health` and `<API_URL>/api/v1/analysis/summary` directly as well.
 
-The final suitability score is computed as a weighted sum of normalized criteria. The recommended default weights are:
+The frontend currently catches API failures and displays fallback values, so seeing a rendered page alone does not prove the API connection is healthy.
 
-- Population Demand: 0.30
-- Hospital Gap: 0.25
-- Road Accessibility: 0.20
-- Metro Accessibility: 0.15
-- Environmental Factor: 0.10
+## API Endpoints
 
-The output is labeled as an analytical site suitability recommendation rather than a legal planning approval.
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/health` | Service health |
+| `GET` | `/api/v1/wards` | Available sample ward records |
+| `GET` | `/api/v1/analysis/summary` | Summary indicators |
+| `POST` | `/api/v1/analysis/site-suitability` | Rank records using supplied weights |
+| `GET` | `/api/v1/analysis/results/{result_id}` | Retrieve a ward result |
 
-## 19. API Documentation
+Interactive documentation is served at `/docs` and `/redoc`.
 
-FastAPI automatically exposes Swagger documentation at:
+## Suitability Model
 
-- `/docs`
-- `/redoc`
+The default weighted criteria are population demand (0.30), hospital gap (0.25), road accessibility (0.20), transit accessibility (0.15), and environmental score (0.10). The result is a planning aid, not a legal approval or a substitute for site surveys, land ownership checks, or professional review.
 
-## 20. Screenshots
+## Data Scope and Limitations
 
-Screenshots can be added to the `docs/` folder or repository wiki as the project evolves.
+- The current API returns **three demonstration ward records**. It does not include all Hyderabad wards or provide a citywide location selector.
+- Demo ward IDs, approximate map geometry, and several displayed indicators must not be interpreted as official boundaries or measured city statistics.
+- The data-source cards describe intended sources; TGRAC, OpenStreetMap, GTFS, Census, and Copernicus ingestion is not yet a complete automated production pipeline.
+- A PostGIS service is included in the local Docker Compose setup, but the current API analysis endpoints use in-memory sample data.
+- Public OpenStreetMap tiles require browser internet access and follow OpenStreetMap's tile usage policy.
 
-## 21. Testing
+## Tests
 
-```bash
+From the repository root:
+
+```powershell
 python -m pytest -q
 ```
 
-## 22. Limitations
+Build the frontend:
 
-- The project does not claim to determine legal hospital approval or land ownership.
-- Census and ward alignment may require a manual review in real-world deployments.
-- Satellite-derived environmental indicators remain optional when Copernicus credentials are unavailable.
+```powershell
+Set-Location frontend
+npm ci
+npm run build
+```
 
-## 23. Future Work
+## Project Layout
 
-- Add real PostGIS ingestion pipelines for TGRAC and OSM data.
-- Add parcel-level suitability if land-use products become available.
-- Add Copernicus NDVI workflows with credentialed access.
-- Improve the ML module for urban-growth prediction.
+```text
+backend/       FastAPI routes, settings, and analysis services
+frontend/      React dashboard and map
+data/          Raw and processed dataset locations
+docs/          Architecture notes and screenshots
+scripts/       Analysis runner
+sql/           PostGIS schema and indexes
+tests/         Backend and suitability tests
+```
 
-## 24. Data Attribution
+## Roadmap
 
-This project uses official and open data sources where available, including TGRAC, OpenStreetMap, HMRL GTFS, and Census India materials. Users must confirm data licensing and usage conditions for their application.
+- Ingest verified GHMC/TGRAC ward boundaries and publish provenance and dates.
+- Connect open transport, service, population, and environmental data to the API.
+- Persist validated spatial layers in PostGIS and remove misleading fallback metrics.
+- Add ward selection/comparison and exportable analysis reports.
 
-## 25. License
+## Attribution and License
 
-This project is distributed under the MIT license unless otherwise specified in the repository.
+When real datasets are added, retain source attribution and follow each dataset's license and usage conditions. Map tiles are © OpenStreetMap contributors. See [LICENSE](LICENSE) for the project license.
